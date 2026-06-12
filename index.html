@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>講義文字起こしノート</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>講義文字起こしノート</h1>
+      <button id="themeToggle" class="icon-btn" title="ダークモード切替">🌙</button>
+    </header>
+
+    <div class="controls">
+      <button id="startBtn" class="btn btn-primary">▶ 開始</button>
+      <button id="stopBtn" class="btn btn-danger" disabled>■ 停止</button>
+      <button id="copyBtn" class="btn btn-secondary">📋 テキストをコピー</button>
+      <button id="saveBtn" class="btn btn-secondary">💾 保存</button>
+      <button id="chatgptBtn" class="btn btn-secondary">🤖 ChatGPTに校正依頼</button>
+      <button id="geminiBtn" class="btn btn-secondary">✨ Geminiに校正依頼</button>
+      <button id="clearBtn" class="btn btn-secondary">🗑 クリア</button>
+    </div>
+
+    <details class="notice">
+      <summary>⚠️ 利用にあたっての注意事項</summary>
+      <ul>
+        <li>このアプリは付属のサーバー経由でOpenAIのWhisper APIを利用します。<strong>ターミナルで <code>npm start</code> を実行し、表示された <code>http://localhost:3000</code> を開いてください</strong>（初回のみ <code>npm install</code> が必要）。</li>
+        <li>対応ブラウザは <strong>Google Chrome</strong> 推奨です（最新版を使ってください）。</li>
+        <li>「開始」で録音、「停止」を押すと録音全体をまとめて文字起こしします。録音が長いほど処理に時間がかかります。</li>
+        <li><strong>1回の録音は約25MB（ビットレート抑制で目安2時間前後）まで。</strong>長い講義は途中で一度停止して区切ると安全です。</li>
+        <li><strong>ページを更新（リロード）すると、文字起こし内容はすべて消えます。</strong>更新前に「保存」または「校正依頼」ボタンでテキストを書き出してください。</li>
+        <li>マイクの使用を許可してください。話者に近いマイクほど精度が上がります。</li>
+        <li>API利用料が発生します（目安: 録音1分あたり約1円）。</li>
+      </ul>
+    </details>
+
+    <div id="status" class="status">待機中</div>
+
+    <div id="transcript" class="transcript" placeholder="ここに文字起こし結果が表示されます…"><span id="finalText"></span><span id="interimText" class="interim"></span></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
