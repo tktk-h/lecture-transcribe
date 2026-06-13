@@ -1,6 +1,6 @@
 // ===== DOM要素 =====
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
+const micBtn = document.getElementById('micBtn');
+const micLabel = document.getElementById('micLabel');
 const copyBtn = document.getElementById('copyBtn');
 const saveBtn = document.getElementById('saveBtn');
 const chatgptBtn = document.getElementById('chatgptBtn');
@@ -70,17 +70,14 @@ async function transcribeRecording() {
 }
 
 // ===== 開始（録音するだけ。文字起こしは停止後） =====
-startBtn.addEventListener('click', async () => {
-  if (isRecording) return;
-  startBtn.disabled = true;
-
+// ===== マイクボタン（タップで録音⇄停止をトグル） =====
+async function startRecording() {
   try {
     // iOS/Safari対策：マイク起動はボタン操作の延長で実行
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch (e) {
     console.error('マイク取得失敗:', e);
     statusEl.textContent = 'マイクを利用できません。ブラウザの許可設定を確認してください。';
-    startBtn.disabled = false;
     return;
   }
 
@@ -100,23 +97,34 @@ startBtn.addEventListener('click', async () => {
       stream = null;
     }
     await transcribeRecording();
-    startBtn.disabled = false;
+    // 変換が終わったらボタンを録音可能状態に戻す
+    micBtn.disabled = false;
   };
 
   isRecording = true;
-  stopBtn.disabled = false;
+  micBtn.classList.add('recording');
+  micLabel.textContent = 'タップして停止';
   if (interimTextEl) interimTextEl.textContent = '';
-  statusEl.textContent = '🔴 録音中…（停止を押すとまとめて文字起こしします）';
+  statusEl.textContent = '🔴 録音中…（もう一度タップするとまとめて文字起こしします）';
   recorder.start();
-});
+}
 
-// ===== 停止 =====
-stopBtn.addEventListener('click', () => {
-  if (!isRecording) return;
+function stopRecording() {
   isRecording = false;
-  stopBtn.disabled = true;
+  micBtn.classList.remove('recording');
+  micLabel.textContent = 'タップして録音開始';
+  // 変換が終わるまでボタンを無効化（二度押し防止）
+  micBtn.disabled = true;
   statusEl.textContent = '⏳ 録音を停止しました。文字起こしを開始します…';
   if (recorder && recorder.state !== 'inactive') recorder.stop();
+}
+
+micBtn.addEventListener('click', () => {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
 });
 
 // ===== コピー =====

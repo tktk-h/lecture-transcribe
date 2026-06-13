@@ -1,25 +1,30 @@
 :root {
-  --bg: #f4f5f7;
-  --surface: #ffffff;
-  --text: #1a1a1a;
-  --muted: #6b7280;
-  --border: #e0e0e0;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --danger: #ef4444;
-  --danger-hover: #dc2626;
+  --bg: #f3e9dd;          /* 温かいクリーム/ベージュ背景 */
+  --surface: #ffffff;     /* 白いカード */
+  --text: #3a3431;        /* やわらかいダークブラウン */
+  --muted: #8c837c;
+  --border: #ece2d6;
+  --primary: #4a9fe0;     /* やさしい水色 */
+  --primary-hover: #3a8fd0;
+  --danger: #f0907f;      /* くすんだサーモン */
+  --danger-hover: #e67d6a;
+  --accent-soft: #eaf4fc; /* 水色の薄い面 */
+  --radius: 20px;
+  --shadow: 0 4px 16px rgba(120, 100, 80, 0.08);
 }
 
 [data-theme="dark"] {
-  --bg: #121212;
-  --surface: #1e1e1e;
-  --text: #f0f0f0;
-  --muted: #9ca3af;
-  --border: #333333;
-  --primary: #6366f1;
-  --primary-hover: #818cf8;
-  --danger: #f87171;
-  --danger-hover: #fca5a5;
+  --bg: #2b2622;
+  --surface: #393330;
+  --text: #f0e8e0;
+  --muted: #b3a89f;
+  --border: #4a423d;
+  --primary: #5aa9e6;
+  --primary-hover: #6fb6ec;
+  --danger: #f0907f;
+  --danger-hover: #f3a596;
+  --accent-soft: #34403f;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 * {
@@ -28,14 +33,14 @@
 
 body {
   margin: 0;
-  font-family: "Hiragino Sans", "Yu Gothic", "Segoe UI", sans-serif;
+  font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
   transition: background 0.3s, color 0.3s;
 }
 
 .app {
-  max-width: 800px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 24px 16px 60px;
 }
@@ -50,37 +55,108 @@ body {
 .header h1 {
   font-size: 1.4rem;
   margin: 0;
+  font-weight: 800;
 }
 
 .icon-btn {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   font-size: 1.1rem;
   cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+.icon-btn:hover {
+  transform: scale(1.05);
+}
+
+.mic-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 20px;
+}
+
+.mic-btn {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(74, 159, 224, 0.35);
+  transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mic-btn:hover {
+  transform: scale(1.05);
+}
+.mic-btn:active {
+  transform: scale(0.97);
+}
+
+.mic-icon {
+  color: #fff;
+  display: block;
+}
+
+/* 録音中はサーモン色＋脈打つアニメーション */
+.mic-btn.recording {
+  background: var(--danger);
+  box-shadow: 0 8px 24px rgba(240, 144, 127, 0.45);
+  animation: micPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes micPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(240, 144, 127, 0.5); }
+  70%  { box-shadow: 0 0 0 18px rgba(240, 144, 127, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(240, 144, 127, 0); }
+}
+
+.mic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  animation: none;
+}
+
+.mic-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .controls {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .btn {
   border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
+  border-radius: 999px;        /* まるっこいピル型 */
+  padding: 12px 22px;
   font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-primary {
@@ -102,38 +178,40 @@ body {
 .btn-secondary {
   background: var(--surface);
   color: var(--text);
-  border: 1px solid var(--border);
 }
 .btn-secondary:hover {
-  background: var(--border);
+  background: var(--accent-soft);
 }
 
 .notice {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 14px;
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 16px;
   font-size: 0.9rem;
   color: var(--text);
+  box-shadow: var(--shadow);
 }
 
 .notice summary {
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 800;
 }
 
 .notice ul {
   margin: 10px 0 0;
   padding-left: 1.2em;
   color: var(--muted);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .status {
   font-size: 0.9rem;
-  color: var(--muted);
-  margin-bottom: 10px;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-left: 4px;
 }
 
 .transcript {
@@ -141,14 +219,19 @@ body {
   min-height: 400px;
   background: var(--surface);
   color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
+  border: none;
+  border-radius: var(--radius);
+  padding: 20px;
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+.transcript:empty::before {
+  content: attr(placeholder);
+  color: var(--muted);
 }
 
 .interim {
@@ -157,11 +240,11 @@ body {
 
 @media (max-width: 600px) {
   .app {
-    padding: 12px 8px 40px;
+    padding: 16px 12px 40px;
   }
 
   .header h1 {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   .controls {
@@ -170,13 +253,13 @@ body {
 
   .btn {
     width: 100%;
-    padding: 14px 18px;
+    padding: 16px 18px;
     font-size: 1.05rem;
   }
 
   .transcript {
-    min-height: 60vh;
+    min-height: 55vh;
     font-size: 1.05rem;
-    padding: 12px;
+    padding: 16px;
   }
 }
