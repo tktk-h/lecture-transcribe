@@ -3,6 +3,7 @@ const micBtn = document.getElementById('micBtn');
 const micLabel = document.getElementById('micLabel');
 const copyBtn = document.getElementById('copyBtn');
 const saveBtn = document.getElementById('saveBtn');
+const saveAudioBtn = document.getElementById('saveAudioBtn');
 const chatgptBtn = document.getElementById('chatgptBtn');
 const geminiBtn = document.getElementById('geminiBtn');
 const clearBtn = document.getElementById('clearBtn');
@@ -30,6 +31,33 @@ let isRecording = false;
 let stream = null;
 let recorder = null;
 let recordedChunks = [];
+let lastAudioBlob = null;   // 直近の録音音声（再保存用に保持）
+
+// ===== 任意のBlobをファイルとしてダウンロード保存 =====
+function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ===== 日時入りのファイル名を作る =====
+function timestampName(prefix, ext) {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${prefix}_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.${ext}`;
+}
+
+// ===== 録音音声をローカルに保存（拡張子は録音形式に合わせる） =====
+function saveAudio(blob) {
+  if (!blob) return;
+  const ext = blob.type.includes('ogg') ? 'ogg' : blob.type.includes('mp4') ? 'm4a' : 'webm';
+  downloadBlob(blob, timestampName('講義録音', ext));
+}
 
 // ===== 録音した音声をサーバー(/transcribe)へ送って文字起こし =====
 async function transcribeRecording() {
@@ -38,7 +66,7 @@ async function transcribeRecording() {
     return;
   }
   try {
-    const blob = new Blob(recordedChunks, { type: recorder?.mimeType || 'audio/webm' });
+    const blob = lastAudioBlob || new Blob(recordedChunks, { type: recorder?.mimeType || 'audio/webm' });
     statusEl.textContent = '☁️ 文字起こし中…（サーバー経由でWhisper APIに送信しています）';
 
     const res = await fetch('/transcribe', {
@@ -49,7 +77,7 @@ async function transcribeRecording() {
     const data = await res.json();
 
     if (!res.ok) {
-      statusEl.textContent = `エラー: ${data.error || '文字起こしに失敗しました'}`;
+      statusEl.textContent = `エラー: ${data.error || '文字起こしに失敗しました'}（録音音声は保存済みです）`;
       return;
     }
 
@@ -65,7 +93,7 @@ async function transcribeRecording() {
     }
   } catch (e) {
     console.error('送信エラー:', e);
-    statusEl.textContent = `エラー: サーバーに接続できません（${e.message}）`;
+    statusEl.textContent = `エラー: サーバーに接続できません。録音音声は保存済みなので、ネット復帰後に「録音音声を保存」から再利用できます（${e.message}）`;
   }
 }
 
@@ -96,6 +124,14 @@ async function startRecording() {
       stream.getTracks().forEach((t) => t.stop());
       stream = null;
     }
+
+    // ★まず録音音声をローカルに自動保存（ネット切断時でも音声を失わないため）
+    if (recordedChunks.length > 0) {
+      lastAudioBlob = new Blob(recordedChunks, { type: recorder?.mimeType || 'audio/webm' });
+      saveAudio(lastAudioBlob);
+      saveAudioBtn.disabled = false;
+    }
+
     await transcribeRecording();
     // 変換が終わったらボタンを録音可能状態に戻す
     micBtn.disabled = false;
@@ -147,19 +183,16 @@ copyBtn.addEventListener('click', async () => {
 // ===== 保存（.txt） =====
 saveBtn.addEventListener('click', () => {
   const blob = new Blob([finalTranscript], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
+  downloadBlob(blob, timestampName('講義ノート', 'txt'));
+});
 
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  const fileName = `講義ノート_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.txt`;
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+// ===== 録音音声を（再）保存 =====
+saveAudioBtn.addEventListener('click', () => {
+  if (!lastAudioBlob) {
+    alert('保存できる録音がまだありません。先に録音してください。');
+    return;
+  }
+  saveAudio(lastAudioBlob);
 });
 
 // ===== AI校正依頼 =====
