@@ -26,6 +26,8 @@
     </div>
 
     <div class="controls">
+      <label for="audioFileInput" class="btn btn-primary">🎧 音声ファイルを選択して文字起こし</label>
+      <input id="audioFileInput" type="file" accept="audio/*" hidden>
       <button id="copyBtn" class="btn btn-secondary">📋 テキストをコピー</button>
       <button id="saveBtn" class="btn btn-secondary">💾 保存</button>
       <button id="saveAudioBtn" class="btn btn-secondary" disabled>🎵 録音音声を保存</button>
@@ -39,8 +41,9 @@
       <ul>
         <li>このアプリは付属のサーバー経由でOpenAIのWhisper APIを利用します。<strong>ターミナルで <code>npm start</code> を実行し、表示された <code>http://localhost:3000</code> を開いてください</strong>（初回のみ <code>npm install</code> が必要）。</li>
         <li>対応ブラウザは <strong>Google Chrome</strong> 推奨です（最新版を使ってください）。</li>
-        <li>中央のマイクボタンをタップで録音開始、もう一度タップすると録音全体をまとめて文字起こしします。録音が長いほど処理に時間がかかります。</li>
-        <li><strong>録音を停止すると、まず音声ファイルが自動でダウンロード保存されます。</strong>万一ネットが切れて文字起こしに失敗しても音声は手元に残ります（あとで「録音音声を保存」から再保存も可能）。</li>
+        <li>中央のマイクボタンをタップで録音開始、もう一度タップで停止します。</li>
+        <li><strong>録音を停止すると、まず音声ファイルが自動でダウンロード保存されます。</strong>そのあと「🎧 音声ファイルを選択して文字起こし」から保存した音声を選ぶと文字起こしが始まります（過去に保存した音声ファイルも選べます）。</li>
+        <li>万一ネットが切れていても音声は手元に残るので、ネット復帰後に同じ音声を選んで文字起こしできます。録音が長いほど処理に時間がかかります。</li>
         <li><strong>1回の録音は約25MB（ビットレート抑制で目安2時間前後）まで。</strong>長い講義は途中で一度停止して区切ると安全です。</li>
         <li><strong>ページを更新（リロード）すると、文字起こし内容はすべて消えます。</strong>更新前に「保存」または「校正依頼」ボタンでテキストを書き出してください。</li>
         <li>マイクの使用を許可してください。話者に近いマイクほど精度が上がります。</li>

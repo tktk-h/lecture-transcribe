@@ -4,6 +4,7 @@ const micLabel = document.getElementById('micLabel');
 const copyBtn = document.getElementById('copyBtn');
 const saveBtn = document.getElementById('saveBtn');
 const saveAudioBtn = document.getElementById('saveAudioBtn');
+const audioFileInput = document.getElementById('audioFileInput');
 const chatgptBtn = document.getElementById('chatgptBtn');
 const geminiBtn = document.getElementById('geminiBtn');
 const clearBtn = document.getElementById('clearBtn');
@@ -59,25 +60,24 @@ function saveAudio(blob) {
   downloadBlob(blob, timestampName('講義録音', ext));
 }
 
-// ===== 録音した音声をサーバー(/transcribe)へ送って文字起こし =====
-async function transcribeRecording() {
-  if (recordedChunks.length === 0) {
-    statusEl.textContent = '音声が録音されていませんでした';
+// ===== 音声ファイル(Blob)をサーバー(/transcribe)へ送って文字起こし =====
+async function transcribeAudio(blob) {
+  if (!blob || blob.size === 0) {
+    statusEl.textContent = '音声ファイルが空です';
     return;
   }
   try {
-    const blob = lastAudioBlob || new Blob(recordedChunks, { type: recorder?.mimeType || 'audio/webm' });
     statusEl.textContent = '☁️ 文字起こし中…（サーバー経由でWhisper APIに送信しています）';
 
     const res = await fetch('/transcribe', {
       method: 'POST',
-      headers: { 'Content-Type': blob.type },
+      headers: { 'Content-Type': blob.type || 'audio/webm' },
       body: blob,
     });
     const data = await res.json();
 
     if (!res.ok) {
-      statusEl.textContent = `エラー: ${data.error || '文字起こしに失敗しました'}（録音音声は保存済みです）`;
+      statusEl.textContent = `エラー: ${data.error || '文字起こしに失敗しました'}`;
       return;
     }
 
@@ -93,7 +93,7 @@ async function transcribeRecording() {
     }
   } catch (e) {
     console.error('送信エラー:', e);
-    statusEl.textContent = `エラー: サーバーに接続できません。録音音声は保存済みなので、ネット復帰後に「録音音声を保存」から再利用できます（${e.message}）`;
+    statusEl.textContent = `エラー: サーバーに接続できません（${e.message}）`;
   }
 }
 
@@ -119,7 +119,7 @@ async function startRecording() {
   recorder.ondataavailable = (e) => {
     if (e.data && e.data.size > 0) recordedChunks.push(e.data);
   };
-  recorder.onstop = async () => {
+  recorder.onstop = () => {
     if (stream) {
       stream.getTracks().forEach((t) => t.stop());
       stream = null;
@@ -130,10 +130,12 @@ async function startRecording() {
       lastAudioBlob = new Blob(recordedChunks, { type: recorder?.mimeType || 'audio/webm' });
       saveAudio(lastAudioBlob);
       saveAudioBtn.disabled = false;
+      statusEl.textContent = '💾 音声を保存しました。「音声ファイルを選択して文字起こし」から、保存した音声を選んでください。';
+    } else {
+      statusEl.textContent = '音声が録音されていませんでした';
     }
 
-    await transcribeRecording();
-    // 変換が終わったらボタンを録音可能状態に戻す
+    // 文字起こしは自動では行わず、ユーザーがファイルを選んでから実行する
     micBtn.disabled = false;
   };
 
@@ -151,7 +153,7 @@ function stopRecording() {
   micLabel.textContent = 'タップして録音開始';
   // 変換が終わるまでボタンを無効化（二度押し防止）
   micBtn.disabled = true;
-  statusEl.textContent = '⏳ 録音を停止しました。文字起こしを開始します…';
+  statusEl.textContent = '⏳ 録音を停止しています。音声を保存します…';
   if (recorder && recorder.state !== 'inactive') recorder.stop();
 }
 
@@ -193,6 +195,15 @@ saveAudioBtn.addEventListener('click', () => {
     return;
   }
   saveAudio(lastAudioBlob);
+});
+
+// ===== 音声ファイルを選択して文字起こし =====
+audioFileInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  await transcribeAudio(file);
+  // 同じファイルを連続で選べるよう値をリセット
+  audioFileInput.value = '';
 });
 
 // ===== AI校正依頼 =====

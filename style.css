@@ -140,11 +140,13 @@ body {
 }
 
 .btn {
+  display: inline-block;
   border: none;
   border-radius: 999px;        /* まるっこいピル型 */
   padding: 12px 22px;
   font-size: 0.95rem;
   font-weight: 700;
+  text-align: center;
   cursor: pointer;
   box-shadow: var(--shadow);
   transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
