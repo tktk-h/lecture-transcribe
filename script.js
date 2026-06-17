@@ -5,6 +5,7 @@ const copyBtn = document.getElementById('copyBtn');
 const saveBtn = document.getElementById('saveBtn');
 const saveAudioBtn = document.getElementById('saveAudioBtn');
 const audioFileInput = document.getElementById('audioFileInput');
+const transcribeBtn = document.getElementById('transcribeBtn');
 const chatgptBtn = document.getElementById('chatgptBtn');
 const geminiBtn = document.getElementById('geminiBtn');
 const clearBtn = document.getElementById('clearBtn');
@@ -130,7 +131,8 @@ async function startRecording() {
       lastAudioBlob = new Blob(recordedChunks, { type: recorder?.mimeType || 'audio/webm' });
       saveAudio(lastAudioBlob);
       saveAudioBtn.disabled = false;
-      statusEl.textContent = '💾 音声を保存しました。「音声ファイルを選択して文字起こし」から、保存した音声を選んでください。';
+      transcribeBtn.disabled = false;
+      statusEl.textContent = '💾 音声を保存しました。「🎧 録音した音声を文字起こし」を押すと文字起こしを開始します。';
     } else {
       statusEl.textContent = '音声が録音されていませんでした';
     }
@@ -197,7 +199,16 @@ saveAudioBtn.addEventListener('click', () => {
   saveAudio(lastAudioBlob);
 });
 
-// ===== 音声ファイルを選択して文字起こし =====
+// ===== 録音した音声を直接文字起こし（iPhone対応：ファイル選択不要） =====
+transcribeBtn.addEventListener('click', async () => {
+  if (!lastAudioBlob) {
+    alert('文字起こしできる録音がまだありません。先に録音してください。');
+    return;
+  }
+  await transcribeAudio(lastAudioBlob);
+});
+
+// ===== 別の音声ファイルを選択して文字起こし =====
 audioFileInput.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
